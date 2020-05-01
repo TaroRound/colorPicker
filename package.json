@@ -1,7 +1,7 @@
 {
   "name": "colorpicker",
   "version": "1.0.0",
-  "description": "colorPicker,拾色器",
+  "description": "colorPicker",
   "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -11,8 +11,7 @@
     "url": "git+https://github.com/TaroRound/colorPicker.git"
   },
   "keywords": [
-    "colorPicker",
-    "拾色器"
+    "colorPicker"
   ],
   "author": "liu-yd",
   "license": "ISC",
