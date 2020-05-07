@@ -292,7 +292,6 @@
 	// 绘制圆
 	function fillCircle (canvas2dContext, ogriginX, ogriginY, radius, strokeStyle, fillStyle) {
 		canvas2dContext.beginPath();
-		canvas2dContext.moveTo(ogriginX, ogriginY);
 		canvas2dContext.arc(ogriginX, ogriginY, radius, 0, 2*Math.PI, false);
 		canvas2dContext.strokeStyle = strokeStyle;
 		canvas2dContext.fillStyle = fillStyle;
@@ -328,7 +327,6 @@
 	// 获取 canvas坐标点的颜色信息
 	function getPixelcolor (canvas2dContext, x, y, imageData) {
 		var pixel, index, r, g, b, a;
-
 		if (imageData) {
 			pixel = imageData.data;
 			index = (y * imageData.width + x) * 4;
@@ -435,7 +433,7 @@
 			defaultMargin = option.defaultMargin || 4,
 			background = option.background || '#ccc',
 			colorRangeIndicatorSize = option.colorRangeIndicatorSize || 4,
-			mode = option.mode === 'dark' || option.mode === 'light' ? option.mode : 'dark',
+			mode,
 			linearColor;
 
 		this.$ = document.querySelector;
@@ -444,7 +442,6 @@
 		this.wrap = wrap;
 		this.uid = 'colorPicker-' + getUUid();
 		this.colorRange = colorRange;
-		this.baseColor = mode === 'dark' ? '#000' : '#fff';
 		this.context = this.canvas.getContext('2d');
 
 		this.color = {};
@@ -509,18 +506,16 @@
 		
 		var _this = this;
 		setTimeout(function () {
-			var boardInitColor;
-
 			_this.imageData = _this.context.getImageData(0, 0, _this.canvas.width, _this.canvas.height);
-
 			layout_board.color = getPixelcolor(_this.context, layout_range.x + layout_range.width / 2, layout_range.y, _this.imageData);
-			boardInitColor = 'rgba(' + layout_board.color.r + ',' + layout_board.color.g + ',' + layout_board.color.b + ', {ALPHA})'
 
 			// 色域面板指示器;
 			_this.updateColorRange();
 		
 			// 颜色展示
-			fillRect(_this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to topRight:0% ' + _this.baseColor + ':100% ' + boardInitColor.replace('{ALPHA}', 1));
+			fillRect(_this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, layout_board.color.rgb);
+			fillRect(_this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to right:0% #fff:100% rgba(255,255,255,0)');
+			fillRect(_this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to top:0% #000:100% rgba(0,0,0,0)');
 			
 			
 			_this.color = getPixelcolor(_this.context, _this.boardPoint.x, _this.boardPoint.y);
@@ -539,21 +534,17 @@
 				y: Math.round(this.rangePoint.y)
 			};
 			var color = getPixelcolor(this.context, point.x, point.y, this.imageData);
+			var layout_board = this.layout.board;
 			
 			this.updateColorRange();
 			
-			this.layout.board.color = color;
+			layout_board.color = color;
 			
-			this.context.clearRect(this.layout.board.x, this.layout.board.y, this.layout.board.width + 3, this.layout.board.height);
-			
-			fillRect(
-				this.context, 
-				this.layout.board.x, 
-				this.layout.board.y, 
-				this.layout.board.width, 
-				this.layout.board.height, 
-				'to topRight:0% ' + this.baseColor + ':100% rgba(' + + color.r + ',' + color.g + ',' + color.b + ',' + '1)'
-			);
+			this.context.clearRect(layout_board.x, layout_board.y, layout_board.width + 3, layout_board.height);
+
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, color.rgb);
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to right:0% #fff:100% rgba(255,255,255,0)');
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to top:0% #000:100% rgba(0,0,0,0)');
 
 			fillCircle(
 				this.context, 
@@ -569,16 +560,13 @@
 		},
 		selectColorBoard: function () {
 			var boardColor = this.layout.board.color;
+			var layout_board = this.layout.board;
 
-			this.context.clearRect(this.layout.board.x, this.layout.board.y, this.layout.board.width + 3, this.layout.board.height);
-			fillRect(
-				this.context, 
-				this.layout.board.x, 
-				this.layout.board.y, 
-				this.layout.board.width, 
-				this.layout.board.height, 
-				'to topRight:0% ' + this.baseColor + ':100% rgba(' + + boardColor.r + ',' + boardColor.g + ',' + boardColor.b + ',' + '1)'
-			);
+			this.context.clearRect(layout_board.x, layout_board.y, layout_board.width + 3, layout_board.height);
+
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, boardColor.rgb);
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to right:0% #fff:100% rgba(255,255,255,0)');
+			fillRect(this.context, layout_board.x, layout_board.y, layout_board.width, layout_board.height, 'to top:0% #000:100% rgba(0,0,0,0)');
 			
 			fillCircle(
 				this.context, 
@@ -810,7 +798,7 @@
 			var scale = linear([0, 3], [layout.y + defaultMargin*2, layout.y + layout.height - defaultMargin*2]);
 			
 			_this.context.clearRect(layout.x, layout.y, layout.width, layout.height);
-
+			
 			['r', 'g', 'b', 'a'].forEach(function (text, index) {
 				fillText(
 					_this.context,
@@ -820,7 +808,8 @@
 					{
 						fontSize: 12,
 						color: '#333',
-						align: 'left'
+						align: 'left',
+						verticle: 'middle'
 					}
 				);
 			});
